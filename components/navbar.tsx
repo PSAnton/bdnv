@@ -15,8 +15,43 @@ import {
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Wallet2 } from "lucide-react";
+import { usePrivy } from "@privy-io/react-auth";
+
+// Privy login function
+function usePrivyLogin() {
+  
+  
+  React.useEffect(() => {
+    if (!document.getElementById("privy-script")) {
+      const script = document.createElement("script");
+      script.id = "privy-script";
+      script.src = "https://widget.privy.io/widget.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+  
+  const handleLogin = React.useCallback(() => {
+    // @ts-ignore
+    if (window.Privy) {
+      // @ts-ignore
+      window.Privy.show();
+    } else {
+      window.addEventListener("privy:ready", () => {
+        // @ts-ignore
+        window.Privy.show();
+      });
+    }
+  }, []);
+
+  return handleLogin;
+}
 
 export function Navbar() {
+  const handleLogin = usePrivyLogin();
+  const { login, logout, ready, authenticated, user } = usePrivy();
+  
+  if (!ready) return <p>Loading...</p>;
   return (
     <div className="sticky top-0 z-50 w-full backdrop-blur-lg bg-background/70 border-b border-border/40">
       <div className="container flex h-16 items-center">
@@ -68,6 +103,17 @@ export function Navbar() {
             <Wallet2 className="w-4 h-4" />
             Connect Wallet
           </Button>
+          {authenticated ? (
+          <>
+                         
+            <Button onClick={logout} variant="outline"
+            className="hidden sm:flex items-center gap-2 text-sm border border-border/80 hover:bg-accent shadow-md"><Wallet2 className="w-4 h-4" />Logout</Button>
+          </>
+        ) : (
+          
+            <Button onClick={login} variant="outline"
+            className="hidden sm:flex items-center gap-2 text-sm border border-border/80 hover:bg-accent shadow-md"><Wallet2 className="w-4 h-4" />Login</Button>
+        )}
         </div>
       </div>
     </div>
